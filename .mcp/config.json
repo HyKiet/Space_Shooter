@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "unity-mcp": {
+      "command": "node",
+      "args": [],
+      "env": {
+        "UNITY_MCP_PORT": "auto"
+      },
+      "description": "Unity MCP Server - connects AI assistants to Unity Editor for programmatic control. Requires com.unity.ai.assistant package installed in Unity.",
+      "setupInstructions": [
+        "1. Open Unity project",
+        "2. Window > Package Manager > + > Add by name: com.unity.ai.assistant",
+        "3. Window > AI > AI Assistant > Enable MCP Server",
+        "4. This config will auto-connect to the running Unity instance"
+      ]
+    }
+  }
+}
