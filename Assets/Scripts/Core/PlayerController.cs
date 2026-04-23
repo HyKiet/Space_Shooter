@@ -1,95 +1,115 @@
 using UnityEngine;
 
+/// <summary>
+/// Player ship - di chuyển WASD/Arrow + bắn Space/Auto
+/// </summary>
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private SpaceGameInput gameInput;
-    [SerializeField] private float moveSpeed = 6f;
-    [SerializeField] private float shootCooldown = 0.15f;
-    [SerializeField] private bool clampToCamera = true;
+    [Header("Movement")]
+    [SerializeField] private float moveSpeed = 8f;
+
+    [Header("Shooting")]
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform shootPoint;
-    [SerializeField] private float projectileSpeed = 18f;
-    [SerializeField] private float projectileLifetime = 2f;
-    [SerializeField] private float projectileDamage = 1f;
+    [SerializeField] private float fireRate = 0.2f;
+    [SerializeField] private AudioClip shootSound;
 
+    [Header("Bounds")]
+    [SerializeField] private float boundaryPadding = 0.5f;
+
+    private Damageable damageable;
+    private AudioSource audioSource;
+    private float nextFireTime;
     private Camera mainCam;
-    private float lastShootTime;
+    private Vector2 screenBoundsMin;
+    private Vector2 screenBoundsMax;
 
     private void Awake()
     {
+        damageable = GetComponent<Damageable>();
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+    }
+
+    private void Start()
+    {
         mainCam = Camera.main;
+        CalculateBounds();
 
-        if (gameInput == null)
+        if (damageable != null)
         {
-            gameInput = FindFirstObjectByType<SpaceGameInput>();
-        }
-    }
-
-    private void OnEnable()
-    {
-        if (gameInput != null)
-        {
-            gameInput.ShootPressed += HandleShoot;
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (gameInput != null)
-        {
-            gameInput.ShootPressed -= HandleShoot;
+            damageable.OnDeath += HandleDeath;
         }
     }
 
     private void Update()
     {
-        Vector2 input = gameInput != null ? gameInput.Move : Vector2.zero;
-        Vector3 delta = new Vector3(input.x, input.y, 0f) * (moveSpeed * Time.deltaTime);
-        transform.position += delta;
+        if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameManager.GameState.Playing)
+            return;
 
-        if (clampToCamera)
+        HandleMovement();
+        HandleShooting();
+    }
+
+    private void HandleMovement()
+    {
+        float h = Input.GetAxisRaw("Horizontal");
+        float v = Input.GetAxisRaw("Vertical");
+
+        Vector3 move = new Vector3(h, v, 0f).normalized * moveSpeed * Time.deltaTime;
+        transform.position += move;
+
+        // Clamp to screen bounds
+        Vector3 pos = transform.position;
+        pos.x = Mathf.Clamp(pos.x, screenBoundsMin.x, screenBoundsMax.x);
+        pos.y = Mathf.Clamp(pos.y, screenBoundsMin.y, screenBoundsMax.y);
+        transform.position = pos;
+    }
+
+    private void HandleShooting()
+    {
+        if (Input.GetKey(KeyCode.Space) && Time.time >= nextFireTime)
         {
-            ClampInsideCamera();
+            Fire();
+            nextFireTime = Time.time + fireRate;
         }
     }
 
-    private void ClampInsideCamera()
+    private void Fire()
     {
-        if (mainCam == null)
-        {
-            return;
-        }
+        if (projectilePrefab == null || shootPoint == null) return;
 
-        Vector3 viewPos = mainCam.WorldToViewportPoint(transform.position);
-        viewPos.x = Mathf.Clamp01(viewPos.x);
-        viewPos.y = Mathf.Clamp01(viewPos.y);
-        transform.position = mainCam.ViewportToWorldPoint(viewPos);
-        transform.position = new Vector3(transform.position.x, transform.position.y, 0f);
+        Instantiate(projectilePrefab, shootPoint.position, Quaternion.identity);
+
+        if (shootSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(shootSound, 0.5f);
+        }
     }
 
-    private void HandleShoot()
+    private void HandleDeath()
     {
-        if (Time.time - lastShootTime < shootCooldown)
+        if (GameManager.Instance != null)
         {
-            return;
+            GameManager.Instance.PlayerDied();
         }
+        gameObject.SetActive(false);
+    }
 
-        lastShootTime = Time.time;
+    private void CalculateBounds()
+    {
+        if (mainCam == null) return;
+        Vector3 bottomLeft = mainCam.ViewportToWorldPoint(new Vector3(0, 0, 0));
+        Vector3 topRight = mainCam.ViewportToWorldPoint(new Vector3(1, 1, 0));
+        screenBoundsMin = new Vector2(bottomLeft.x + boundaryPadding, bottomLeft.y + boundaryPadding);
+        screenBoundsMax = new Vector2(topRight.x - boundaryPadding, topRight.y - boundaryPadding);
+    }
 
-        if (projectilePrefab == null)
-        {
-            Debug.LogWarning("PlayerController: Missing projectilePrefab.", this);
-            return;
-        }
-
-        Vector3 spawnPos = shootPoint != null ? shootPoint.position : transform.position + Vector3.up * 0.9f;
-        GameObject bullet = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
-
-        Vector2 shootDirection = Vector2.up;
-        Projectile projectile = bullet.GetComponent<Projectile>();
-        if (projectile != null)
-        {
-            projectile.Initialize(shootDirection, projectileSpeed, projectileLifetime, projectileDamage, gameObject);
-        }
+    private void OnDestroy()
+    {
+        if (damageable != null)
+            damageable.OnDeath -= HandleDeath;
     }
 }

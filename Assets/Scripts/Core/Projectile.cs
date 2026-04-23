@@ -1,63 +1,35 @@
 using UnityEngine;
 
+/// <summary>
+/// Projectile - bay lên trên, gây damage khi va chạm
+/// </summary>
 public class Projectile : MonoBehaviour
 {
-    [SerializeField] private float speed = 14f;
-    [SerializeField] private float lifeTime = 2f;
-    [SerializeField] private float damage = 1f;
-    [SerializeField] private string[] hittableTags = { "Enemy", "Meteor" };
+    [SerializeField] private float speed = 12f;
+    [SerializeField] private float damage = 25f;
+    [SerializeField] private float lifetime = 3f;
+    [SerializeField] private Vector2 direction = Vector2.up;
 
-    private Vector2 direction = Vector2.up;
-    private GameObject owner;
-
-    public void Initialize(Vector2 moveDirection, float newSpeed, float newLifetime, float newDamage, GameObject projectileOwner)
+    private void Start()
     {
-        direction = moveDirection.sqrMagnitude > 0f ? moveDirection.normalized : Vector2.up;
-        speed = newSpeed;
-        lifeTime = newLifetime;
-        damage = newDamage;
-        owner = projectileOwner;
-        Destroy(gameObject, lifeTime);
+        Destroy(gameObject, lifetime);
     }
 
     private void Update()
     {
-        transform.position += (Vector3)(direction * speed * Time.deltaTime);
+        transform.Translate(direction.normalized * speed * Time.deltaTime, Space.World);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        TryHit(other.gameObject);
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        TryHit(collision.gameObject);
-    }
-
-    private void TryHit(GameObject other)
-    {
-        if (other == null || other == owner)
-        {
-            return;
-        }
-
-        var damageable = other.GetComponent<Damageable>() ?? other.GetComponentInParent<Damageable>();
+        var damageable = other.GetComponent<Damageable>();
         if (damageable != null)
         {
-            damageable.ApplyDamage(damage);
-            Destroy(gameObject);
-            return;
-        }
+            // Don't damage player (projectile is from player)
+            if (other.CompareTag("Player")) return;
 
-        foreach (string tagName in hittableTags)
-        {
-            if (!string.IsNullOrEmpty(tagName) && other.CompareTag(tagName))
-            {
-                Destroy(other);
-                Destroy(gameObject);
-                return;
-            }
+            damageable.TakeDamage(damage);
+            Destroy(gameObject);
         }
     }
 }

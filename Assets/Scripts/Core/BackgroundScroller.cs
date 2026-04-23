@@ -1,26 +1,27 @@
 using UnityEngine;
 
+/// <summary>
+/// Background vô hạn scrolling xuống dưới
+/// </summary>
 public class BackgroundScroller : MonoBehaviour
 {
-    [SerializeField] private float scrollSpeed = 1.25f;
-    [SerializeField] private float tileHeight = 20f;
-    [SerializeField] private Transform resetTarget;
+    [SerializeField] private float scrollSpeed = 0.5f;
+    [SerializeField] private float resetHeight = 20f;
+    [SerializeField] private float startY = 0f;
 
     private void Update()
     {
-        transform.position += Vector3.down * (scrollSpeed * Time.deltaTime);
-
-        if (resetTarget == null)
-        {
+        if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameManager.GameState.Playing)
             return;
-        }
 
-        if (transform.position.y <= resetTarget.position.y - tileHeight)
+        transform.position += Vector3.down * scrollSpeed * Time.deltaTime;
+
+        // Reset khi xuống quá xa
+        if (transform.position.y <= -resetHeight)
         {
-            transform.position = new Vector3(
-                transform.position.x,
-                resetTarget.position.y + tileHeight,
-                transform.position.z);
+            Vector3 pos = transform.position;
+            pos.y += resetHeight * 2f;
+            transform.position = pos;
         }
     }
 }
