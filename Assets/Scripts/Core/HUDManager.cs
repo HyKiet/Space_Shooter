@@ -3,7 +3,8 @@ using UnityEngine.UI;
 
 /// <summary>
 /// HUD Manager - Health bar, Wave text, Kill counters (enemy + meteor)
-/// Matches reference: Top-left Ship Health bar + Wave, Top-right kill icons
+/// Tự tìm Player Damageable lúc runtime
+/// Dùng CanvasGroup alpha để ẩn/hiện thay vì setActive (tránh mất event subscription)
 /// </summary>
 public class HUDManager : MonoBehaviour
 {
@@ -14,19 +15,42 @@ public class HUDManager : MonoBehaviour
     [Header("Wave")]
     [SerializeField] private Text waveText;
 
+    [Header("Score")]
+    [SerializeField] private Text scoreText;
+
     [Header("Kill Counters")]
     [SerializeField] private Text enemyKillText;
     [SerializeField] private Text meteorKillText;
 
-    [Header("Player Reference")]
-    [SerializeField] private Damageable playerDamageable;
+    private Damageable playerDamageable;
+    private CanvasGroup canvasGroup;
+
+    private void Awake()
+    {
+        canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+    }
 
     private void Start()
     {
+        // Tự tìm Player Damageable lúc runtime
+        PlayerController player = FindObjectOfType<PlayerController>(true);
+        if (player != null)
+        {
+            playerDamageable = player.GetComponent<Damageable>();
+            Debug.Log($"[HUDManager] Found player: {player.name}, Damageable={playerDamageable != null}");
+        }
+
         if (playerDamageable != null)
         {
             playerDamageable.OnHealthChanged += UpdateHealth;
             UpdateHealth(playerDamageable.CurrentHealth, playerDamageable.MaxHealth);
+            Debug.Log($"[HUDManager] Subscribed to health events. HP={playerDamageable.CurrentHealth}/{playerDamageable.MaxHealth}");
+        }
+        else
+        {
+            Debug.LogWarning("[HUDManager] Player Damageable not found!");
         }
 
         if (GameManager.Instance != null)
@@ -34,6 +58,7 @@ public class HUDManager : MonoBehaviour
             GameManager.Instance.OnEnemyKilled += UpdateEnemyKills;
             GameManager.Instance.OnMeteorKilled += UpdateMeteorKills;
             GameManager.Instance.OnWaveChanged += UpdateWave;
+            GameManager.Instance.OnScoreChanged += UpdateScore;
             GameManager.Instance.OnStateChanged += HandleStateChanged;
         }
 
@@ -41,6 +66,7 @@ public class HUDManager : MonoBehaviour
         UpdateEnemyKills(0);
         UpdateMeteorKills(0);
         UpdateWave(0);
+        UpdateScore(0);
 
         if (GameManager.Instance != null)
         {
@@ -52,7 +78,9 @@ public class HUDManager : MonoBehaviour
     {
         if (healthBarFill != null)
         {
-            healthBarFill.fillAmount = max > 0 ? current / max : 0f;
+            float fill = max > 0 ? current / max : 0f;
+            healthBarFill.fillAmount = fill;
+            Debug.Log($"[HUDManager] Health updated: {current}/{max} → fillAmount={fill}");
         }
     }
 
@@ -74,10 +102,22 @@ public class HUDManager : MonoBehaviour
             waveText.text = "Wave: " + wave;
     }
 
+    private void UpdateScore(int score)
+    {
+        if (scoreText != null)
+            scoreText.text = "Score: " + score;
+    }
+
     private void HandleStateChanged(GameManager.GameState state)
     {
-        // Hide HUD when not playing
-        gameObject.SetActive(state == GameManager.GameState.Playing || state == GameManager.GameState.GameOver);
+        // Dùng CanvasGroup để ẩn/hiện - KHÔNG dùng setActive (vì sẽ mất event subscription)
+        bool show = (state == GameManager.GameState.Playing);
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = show ? 1f : 0f;
+            canvasGroup.interactable = show;
+            canvasGroup.blocksRaycasts = show;
+        }
     }
 
     private void OnDestroy()
@@ -90,6 +130,7 @@ public class HUDManager : MonoBehaviour
             GameManager.Instance.OnEnemyKilled -= UpdateEnemyKills;
             GameManager.Instance.OnMeteorKilled -= UpdateMeteorKills;
             GameManager.Instance.OnWaveChanged -= UpdateWave;
+            GameManager.Instance.OnScoreChanged -= UpdateScore;
             GameManager.Instance.OnStateChanged -= HandleStateChanged;
         }
     }

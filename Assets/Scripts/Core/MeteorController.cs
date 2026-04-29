@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Meteor - di chuyển xuống + xoay, gây damage player
+/// Drop item khi bị phá hủy
 /// </summary>
 public class MeteorController : MonoBehaviour
 {
@@ -14,6 +15,12 @@ public class MeteorController : MonoBehaviour
     [SerializeField] private float contactDamage = 30f;
     [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private AudioClip explosionSound;
+
+    [Header("Item Drop")]
+    [SerializeField] private GameObject healthPickupPrefab;
+    [SerializeField] private GameObject weaponPickupPrefab;
+    [SerializeField] [Range(0f, 1f)] private float dropChance = 0.3f;
+    [SerializeField] [Range(0f, 1f)] private float healthDropRatio = 0.65f; // 65% health, 35% weapon
 
     private Damageable damageable;
     private float hDir;
@@ -64,12 +71,35 @@ public class MeteorController : MonoBehaviour
             AudioSource.PlayClipAtPoint(explosionSound, transform.position, 0.7f);
         }
 
+        // Drop item
+        TryDropItem();
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.AddMeteorKill();
         }
 
         Destroy(gameObject);
+    }
+
+    private void TryDropItem()
+    {
+        if (Random.value > dropChance) return;
+
+        GameObject itemPrefab;
+        if (Random.value < healthDropRatio)
+        {
+            itemPrefab = healthPickupPrefab;
+        }
+        else
+        {
+            itemPrefab = weaponPickupPrefab;
+        }
+
+        if (itemPrefab != null)
+        {
+            Instantiate(itemPrefab, transform.position, Quaternion.identity);
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)

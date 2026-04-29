@@ -2,19 +2,25 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Player ship - di chuyển WASD/Arrow + bắn Space/Auto
+/// Player ship - di chuyển WASD/Arrow + bắn Space/J
 /// Sử dụng New Input System
+/// Hỗ trợ weapon upgrade level 1-3
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 8f;
+    [SerializeField] private float smoothTime = 0.08f; // Độ trễ di chuyển (smooth damp)
 
     [Header("Shooting")]
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform shootPoint;
     [SerializeField] private float fireRate = 0.2f;
     [SerializeField] private AudioClip shootSound;
+
+    [Header("Weapon Upgrade")]
+    [SerializeField] private int maxWeaponLevel = 3;
+    [SerializeField] private float spreadAngle = 15f;
 
     [Header("Bounds")]
     [SerializeField] private float boundaryPadding = 0.5f;
@@ -25,6 +31,13 @@ public class PlayerController : MonoBehaviour
     private Camera mainCam;
     private Vector2 screenBoundsMin;
     private Vector2 screenBoundsMax;
+
+    // Weapon level: 1 = single, 2 = double, 3 = triple fan
+    private int weaponLevel = 1;
+
+    // Smooth movement
+    private Vector3 targetPosition;
+    private Vector3 velocity = Vector3.zero;
 
     // New Input System
     private Vector2 moveInput;
@@ -43,6 +56,7 @@ public class PlayerController : MonoBehaviour
     {
         mainCam = Camera.main;
         CalculateBounds();
+        targetPosition = transform.position;
 
         if (damageable != null)
         {
@@ -81,14 +95,16 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMovement()
     {
+        // Tính vị trí mục tiêu
         Vector3 move = new Vector3(moveInput.x, moveInput.y, 0f).normalized * moveSpeed * Time.deltaTime;
-        transform.position += move;
+        targetPosition += move;
 
-        // Clamp to screen bounds
-        Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x, screenBoundsMin.x, screenBoundsMax.x);
-        pos.y = Mathf.Clamp(pos.y, screenBoundsMin.y, screenBoundsMax.y);
-        transform.position = pos;
+        // Clamp target to screen bounds
+        targetPosition.x = Mathf.Clamp(targetPosition.x, screenBoundsMin.x, screenBoundsMax.x);
+        targetPosition.y = Mathf.Clamp(targetPosition.y, screenBoundsMin.y, screenBoundsMax.y);
+
+        // Smooth damp - tạo độ trễ mượt mà
+        transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothTime);
     }
 
     private void HandleShooting()
@@ -102,25 +118,57 @@ public class PlayerController : MonoBehaviour
 
     private void Fire()
     {
-        if (projectilePrefab == null)
-        {
-            Debug.LogError("PlayerController: projectilePrefab is NULL!");
+        if (projectilePrefab == null || shootPoint == null)
             return;
-        }
-        if (shootPoint == null)
-        {
-            Debug.LogError("PlayerController: shootPoint is NULL!");
-            return;
-        }
 
-        var bullet = Instantiate(projectilePrefab, shootPoint.position, Quaternion.identity);
-        Debug.Log($"FIRED! Bullet spawned at {shootPoint.position}, obj={bullet.name}");
+        switch (weaponLevel)
+        {
+            case 1:
+                // Single shot
+                SpawnBullet(Vector2.up);
+                break;
+            case 2:
+                // Double shot - slight spread
+                SpawnBullet(Quaternion.Euler(0, 0, spreadAngle * 0.5f) * Vector2.up);
+                SpawnBullet(Quaternion.Euler(0, 0, -spreadAngle * 0.5f) * Vector2.up);
+                break;
+            default:
+                // Triple fan
+                SpawnBullet(Vector2.up);
+                SpawnBullet(Quaternion.Euler(0, 0, spreadAngle) * Vector2.up);
+                SpawnBullet(Quaternion.Euler(0, 0, -spreadAngle) * Vector2.up);
+                break;
+        }
 
         if (shootSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(shootSound, 0.5f);
         }
     }
+
+    private void SpawnBullet(Vector2 direction)
+    {
+        var bullet = Instantiate(projectilePrefab, shootPoint.position, Quaternion.identity);
+        var proj = bullet.GetComponent<Projectile>();
+        if (proj != null)
+        {
+            proj.SetDirection(direction);
+        }
+    }
+
+    /// <summary>
+    /// Gọi bởi ItemPickup khi player nhặt weapon upgrade
+    /// </summary>
+    public void UpgradeWeapon()
+    {
+        if (weaponLevel < maxWeaponLevel)
+        {
+            weaponLevel++;
+            Debug.Log($"[PlayerController] Weapon upgraded to level {weaponLevel}");
+        }
+    }
+
+    public int WeaponLevel => weaponLevel;
 
     private void HandleDeath()
     {

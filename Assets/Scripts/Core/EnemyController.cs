@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Enemy ship - di chuyển xuống, có health bar, gây damage player khi va chạm
+/// Enemy ship - di chuyển xuống, bắn đạn, có health bar, gây damage player khi va chạm
 /// </summary>
 public class EnemyController : MonoBehaviour
 {
@@ -15,12 +15,19 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private AudioClip explosionSound;
 
+    [Header("Shooting")]
+    [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] private Transform shootPoint;
+    [SerializeField] private float fireInterval = 2.5f;
+    [SerializeField] private AudioClip shootSound;
+
     [Header("Score")]
     [SerializeField] private int scoreValue = 1;
 
     private Damageable damageable;
     private float driftOffset;
     private float spawnX;
+    private float nextFireTime;
 
     private void Awake()
     {
@@ -31,6 +38,7 @@ public class EnemyController : MonoBehaviour
     {
         spawnX = transform.position.x;
         driftOffset = Random.Range(0f, Mathf.PI * 2f);
+        nextFireTime = Time.time + Random.Range(1f, fireInterval);
 
         if (damageable != null)
         {
@@ -48,10 +56,35 @@ public class EnemyController : MonoBehaviour
         Vector3 moveDir = new Vector3(xDrift, -moveSpeed, 0f);
         transform.position += moveDir * Time.deltaTime;
 
+        // Shooting
+        HandleShooting();
+
         // Destroy if off screen (below)
         if (transform.position.y < -7f)
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void HandleShooting()
+    {
+        if (projectilePrefab == null) return;
+        if (Time.time < nextFireTime) return;
+
+        nextFireTime = Time.time + fireInterval;
+
+        Vector3 spawnPos = shootPoint != null ? shootPoint.position : transform.position + Vector3.down * 0.5f;
+        var bullet = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+        var proj = bullet.GetComponent<Projectile>();
+        if (proj != null)
+        {
+            proj.SetDirection(Vector2.down);
+            proj.SetAsEnemyProjectile();
+        }
+
+        if (shootSound != null)
+        {
+            AudioSource.PlayClipAtPoint(shootSound, transform.position, 0.4f);
         }
     }
 

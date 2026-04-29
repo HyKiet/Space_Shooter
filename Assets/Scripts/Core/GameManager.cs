@@ -15,20 +15,27 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameState currentState = GameState.Playing;
     public GameState CurrentState => currentState;
 
+    [Header("Score Settings")]
+    [SerializeField] private int enemyScoreValue = 100;
+    [SerializeField] private int meteorScoreValue = 50;
+
     // Events
     public event Action<GameState> OnStateChanged;
     public event Action<int> OnEnemyKilled;
     public event Action<int> OnMeteorKilled;
     public event Action<int> OnWaveChanged;
+    public event Action<int> OnScoreChanged;
     public event Action OnPlayerDied;
 
     // Stats
     public int EnemyKills { get; private set; }
     public int MeteorKills { get; private set; }
     public int CurrentWave { get; private set; }
+    public int Score { get; private set; }
     public int HighscoreEnemyKills { get; private set; }
     public int HighscoreMeteorKills { get; private set; }
     public int HighscoreWave { get; private set; }
+    public int HighscoreScore { get; private set; }
 
     private void Awake()
     {
@@ -52,6 +59,8 @@ public class GameManager : MonoBehaviour
         EnemyKills = 0;
         MeteorKills = 0;
         CurrentWave = 0;
+        Score = 0;
+        OnScoreChanged?.Invoke(0);
         SetState(GameState.Playing);
     }
 
@@ -82,13 +91,17 @@ public class GameManager : MonoBehaviour
     public void AddEnemyKill()
     {
         EnemyKills++;
+        Score += enemyScoreValue;
         OnEnemyKilled?.Invoke(EnemyKills);
+        OnScoreChanged?.Invoke(Score);
     }
 
     public void AddMeteorKill()
     {
         MeteorKills++;
+        Score += meteorScoreValue;
         OnMeteorKilled?.Invoke(MeteorKills);
+        OnScoreChanged?.Invoke(Score);
     }
 
     public void SetWave(int wave)
@@ -138,6 +151,11 @@ public class GameManager : MonoBehaviour
             HighscoreWave = CurrentWave;
             PlayerPrefs.SetInt("HighscoreWave", HighscoreWave);
         }
+        if (Score > HighscoreScore)
+        {
+            HighscoreScore = Score;
+            PlayerPrefs.SetInt("HighscoreScore", HighscoreScore);
+        }
         PlayerPrefs.Save();
     }
 
@@ -146,6 +164,7 @@ public class GameManager : MonoBehaviour
         HighscoreEnemyKills = PlayerPrefs.GetInt("HighscoreEnemyKills", 0);
         HighscoreMeteorKills = PlayerPrefs.GetInt("HighscoreMeteorKills", 0);
         HighscoreWave = PlayerPrefs.GetInt("HighscoreWave", 0);
+        HighscoreScore = PlayerPrefs.GetInt("HighscoreScore", 0);
     }
 
     private void OnDestroy()

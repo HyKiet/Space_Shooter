@@ -261,9 +261,11 @@ MonoBehaviour:
   currentEnemyKillText: {fileID: 1402641829}
   currentMeteorKillText: {fileID: 830839377}
   currentWaveText: {fileID: 1661680472}
+  currentScoreText: {fileID: 0}
   highscoreEnemyKillText: {fileID: 1740783558}
   highscoreMeteorKillText: {fileID: 563641506}
   highscoreWaveText: {fileID: 1393568155}
+  highscoreScoreText: {fileID: 0}
   playAgainButton: {fileID: 631520561}
   mainMenuButton: {fileID: 2094126464}
 --- !u!114 &49368121
@@ -1010,6 +1012,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   currentState: 1
+  enemyScoreValue: 100
+  meteorScoreValue: 50
 --- !u!4 &494348887
 Transform:
   m_ObjectHideFlags: 0
@@ -1955,6 +1959,85 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 648292935}
   m_CullTransparentMesh: 1
+--- !u!1 &692257372
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 692257373}
+  - component: {fileID: 692257375}
+  - component: {fileID: 692257374}
+  m_Layer: 0
+  m_Name: ScoreText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &692257373
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692257372}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 866925364}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 20, y: -110}
+  m_SizeDelta: {x: 200, y: 40}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &692257374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692257372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 12800000, guid: b66f9b00e7564cc41a6754dfb1dde60a, type: 3}
+    m_FontSize: 22
+    m_FontStyle: 1
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 3
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: 'Score: 0'
+--- !u!222 &692257375
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692257372}
+  m_CullTransparentMesh: 1
 --- !u!1 &830839375
 GameObject:
   m_ObjectHideFlags: 0
@@ -2070,6 +2153,7 @@ RectTransform:
   - {fileID: 1702446166}
   - {fileID: 634466826}
   - {fileID: 83996239}
+  - {fileID: 692257373}
   m_Father: {fileID: 881361469}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2092,9 +2176,10 @@ MonoBehaviour:
   healthBarFill: {fileID: 1240966110}
   healthLabel: {fileID: 36168977}
   waveText: {fileID: 1704625182}
+  scoreText: {fileID: 692257374}
   enemyKillText: {fileID: 1843475506}
   meteorKillText: {fileID: 634466827}
-  playerDamageable: {fileID: 1698274308}
+  playerDamageable: {fileID: 1698274309}
 --- !u!1 &881361465
 GameObject:
   m_ObjectHideFlags: 0
@@ -2294,7 +2379,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BackgroundScroller
   scrollSpeed: 0.5
-  resetHeight: 20
+  resetHeight: 12.8
   startY: 0
 --- !u!212 &958833587
 SpriteRenderer:
@@ -2345,7 +2430,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 81e7acb5d2bfc75469eea4f339ca7365, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f62d6d07788e33a4abbf06b0ac8b03bc, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -2869,7 +2954,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BackgroundScroller
   scrollSpeed: 0.5
-  resetHeight: 20
+  resetHeight: 12.8
   startY: 0
 --- !u!212 &1194432475
 SpriteRenderer:
@@ -2920,7 +3005,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 81e7acb5d2bfc75469eea4f339ca7365, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f62d6d07788e33a4abbf06b0ac8b03bc, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -2939,7 +3024,7 @@ Transform:
   m_GameObject: {fileID: 1194432473}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 20, z: 10}
+  m_LocalPosition: {x: 0, y: 12.8, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3306,18 +3391,7 @@ MonoBehaviour:
   m_Script: {fileID: 1365247501}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuDrifterSpawner
-  prefabsToSpawn:
-  - {fileID: 1762303578077224, guid: 9685a397aac114db9889c2a983af24e6, type: 3}
-  - {fileID: 1705349776823396, guid: 541b040e168f245cf9f2f510780440fd, type: 3}
-  - {fileID: 1809984191729300, guid: 7ff64416fb649436baa5c0eec81a2882, type: 3}
-  - {fileID: 1517397130360990, guid: 7a03fdf14f0be483c97b353d57840bf8, type: 3}
-  - {fileID: 7185223628768834565, guid: a7a4d334e67210942a2b4b302f8f6c68, type: 3}
-  - {fileID: 1681009956557646, guid: 64841f21255e5483a842ec828db83a70, type: 3}
-  - {fileID: 1519377103190442, guid: 0579293ac60a84b4b90e9ac25c93b30e, type: 3}
-  - {fileID: 1319861625924068, guid: 494f5858d0b1f415ea3401e84732aa08, type: 3}
-  - {fileID: 1258905992647310, guid: 4b0eb74c082fe47faba29baf3115f462, type: 3}
-  - {fileID: 1970569054137045035, guid: 0c985d22815db344295f200516defea7, type: 3}
-  - {fileID: 6120480955801237967, guid: 4b552a1b2f278d94e971c17e9fed553e, type: 3}
+  prefabsToSpawn: []
   spawnInterval: 1.2
   minSpeed: 1
   maxSpeed: 3
@@ -4358,6 +4432,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Damageable
   maxHealth: 100
   currentHealth: 0
+--- !u!114 &1698274309 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4972678191572496479, guid: bf3da606a3ca5ca4c8f2005353fcb687, type: 3}
+  m_PrefabInstance: {fileID: 1698274305}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1698274306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32a5328777af0bc4194ebc865cfdef38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Damageable
 --- !u!1 &1702446165
 GameObject:
   m_ObjectHideFlags: 0
