@@ -44,11 +44,12 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
-            return;
+            // Scene reload: instance cũ vẫn tồn tại — destroy cái cũ, dùng cái mới
+            Destroy(Instance.gameObject);
         }
         Instance = this;
-
+        // Không dùng DontDestroyOnLoad — vì game chỉ có 1 scene,
+        // reload sẽ tạo GameManager mới hoàn toàn (sạch data)
         LoadHighscore();
     }
 
@@ -142,7 +143,7 @@ public class GameManager : MonoBehaviour
     public void GoToMainMenu()
     {
         Time.timeScale = 1f;
-        // Reload same scene for now (no main menu scene)
+        // Reset stats và về Menu state (reload scene để reset toàn bộ object)
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 

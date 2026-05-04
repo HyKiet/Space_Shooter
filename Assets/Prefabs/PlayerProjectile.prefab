@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2383087181170912499}
   m_Layer: 0
   m_Name: PlayerProjectile
-  m_TagString: Untagged
+  m_TagString: PlayerProjectile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -174,3 +174,14 @@ MonoBehaviour:
   lifetime: 3
   direction: {x: 0, y: 1}
   isEnemyProjectile: 0
+  isPiercing: 0
+  maxPierceCount: 3
+  isHoming: 0
+  homingStrength: 180
+  homingRange: 8
+  homingDelay: 0.1
+  isAoE: 0
+  aoeDamage: 20
+  aoeRadius: 1
+  aoeVFXPrefab: {fileID: 0}
+  hitVFXPrefab: {fileID: 1610025635877318, guid: efd7233f184954f4e8c824d4df0cebb5, type: 3}

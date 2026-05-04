@@ -9,11 +9,23 @@ using System.Collections.Generic;
 /// </summary>
 public class WaveSpawner : MonoBehaviour
 {
+    // ─── Enemy Spawn Entry ─────────────────────────────────
+    [System.Serializable]
+    public class EnemySpawnEntry
+    {
+        public GameObject prefab;
+        [Tooltip("Xuất hiện từ wave nào trở đi")]
+        public int minWave = 1;
+        [Tooltip("Tỷ lệ spawn so với các loại khác (cao = xuất hiện nhiều hơn)")]
+        public float weight = 1f;
+    }
+
     [Header("Enemy Spawning")]
-    [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private int baseEnemyCount = 3;
-    [SerializeField] private int enemiesPerWaveIncrease = 1;
-    [SerializeField] private float enemySpawnDelay = 0.5f;
+    [Tooltip("Danh sách enemy types — mỗi entry có minWave và weight riêng")]
+    [SerializeField] private EnemySpawnEntry[] enemyTypes;
+    [SerializeField] private int   baseEnemyCount        = 3;
+    [SerializeField] private int   enemiesPerWaveIncrease = 1;
+    [SerializeField] private float enemySpawnDelay       = 0.5f;
 
     [Header("Meteor Spawning")]
     [SerializeField] private GameObject[] meteorPrefabs;
@@ -163,7 +175,7 @@ public class WaveSpawner : MonoBehaviour
         activeEnemies.Clear();
 
         // Xóa tất cả enemy còn lại trong scene
-        var allEnemies = GameObject.FindObjectsOfType<EnemyController>();
+        var allEnemies = GameObject.FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
         foreach (var e in allEnemies)
             Destroy(e.gameObject);
     }
@@ -178,14 +190,54 @@ public class WaveSpawner : MonoBehaviour
             float x = Random.Range(spawnXMin, spawnXMax);
             Vector3 spawnPos = new Vector3(x, spawnY, 0f);
 
-            if (enemyPrefab != null)
+            // Chọn enemy type dựa theo wave và weight
+            var selectedPrefab = PickEnemyPrefab(currentWave);
+            if (selectedPrefab != null)
             {
-                var enemy = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+                // Dùng prefab.transform.rotation để giữ flipY/rotation đã set trong prefab
+                var enemy = Instantiate(selectedPrefab, spawnPos, selectedPrefab.transform.rotation);
                 activeEnemies.Add(enemy);
+
+                // AI v2: Truyền wave number để enemy tự scale difficulty
+                var ec = enemy.GetComponent<EnemyController>();
+                if (ec != null) ec.Init(currentWave);
             }
 
             yield return new WaitForSeconds(enemySpawnDelay);
         }
+    }
+
+    /// <summary>
+    /// Chọn ngẫu nhiên enemy prefab phù hợp với wave hiện tại (weighted random)
+    /// </summary>
+    private GameObject PickEnemyPrefab(int wave)
+    {
+        if (enemyTypes == null || enemyTypes.Length == 0) return null;
+
+        // Lọc các entry đủ điều kiện (minWave ≤ wave hiện tại)
+        float totalWeight = 0f;
+        for (int i = 0; i < enemyTypes.Length; i++)
+        {
+            var e = enemyTypes[i];
+            if (e.prefab != null && wave >= e.minWave)
+                totalWeight += e.weight;
+        }
+
+        if (totalWeight <= 0f) return enemyTypes[0].prefab; // fallback
+
+        // Weighted random pick
+        float roll = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+        for (int i = 0; i < enemyTypes.Length; i++)
+        {
+            var e = enemyTypes[i];
+            if (e.prefab == null || wave < e.minWave) continue;
+            cumulative += e.weight;
+            if (roll <= cumulative)
+                return e.prefab;
+        }
+
+        return enemyTypes[0].prefab; // fallback
     }
 
     private IEnumerator MeteorSpawnLoop()

@@ -19,11 +19,17 @@ public class MeteorController : MonoBehaviour
     [Header("Item Drop")]
     [SerializeField] private GameObject healthPickupPrefab;
     [SerializeField] private GameObject weaponPickupPrefab;
+    [SerializeField] private GameObject laserPickupPrefab;
+    [SerializeField] private GameObject missilePickupPrefab;
+    [SerializeField] private GameObject plasmaPickupPrefab;
     [SerializeField] [Range(0f, 1f)] private float dropChance = 0.3f;
-    [SerializeField] [Range(0f, 1f)] private float healthDropRatio = 0.65f; // 65% health, 35% weapon
+    [SerializeField] [Range(0f, 1f)] private float healthDropRatio = 0.55f;  // 55% health
+    [SerializeField] [Range(0f, 1f)] private float weaponDropRatio  = 0.25f; // 25% upgrade, 20% weapon type
 
     private Damageable damageable;
     private float hDir;
+    // FIX: Guard chống double-kill — đặc biệt quan trọng với Laser (piercing)
+    private bool isDead = false;
 
     private void Awake()
     {
@@ -60,6 +66,10 @@ public class MeteorController : MonoBehaviour
 
     private void HandleDeath()
     {
+        // FIX: Chặn double-kill — Laser piercing có thể trigger HandleDeath nhiều lần
+        if (isDead) return;
+        isDead = true;
+
         if (explosionPrefab != null)
         {
             var explo = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
@@ -86,20 +96,28 @@ public class MeteorController : MonoBehaviour
     {
         if (Random.value > dropChance) return;
 
+        float roll = Random.value;
         GameObject itemPrefab;
-        if (Random.value < healthDropRatio)
+
+        if (roll < healthDropRatio)
         {
+            // Health pickup
             itemPrefab = healthPickupPrefab;
+        }
+        else if (roll < healthDropRatio + weaponDropRatio)
+        {
+            // Weapon level upgrade
+            itemPrefab = weaponPickupPrefab;
         }
         else
         {
-            itemPrefab = weaponPickupPrefab;
+            // Random weapon type pickup (Laser / Missile / Plasma)
+            var weaponTypes = new GameObject[] { laserPickupPrefab, missilePickupPrefab, plasmaPickupPrefab };
+            itemPrefab = weaponTypes[Random.Range(0, weaponTypes.Length)];
         }
 
         if (itemPrefab != null)
-        {
             Instantiate(itemPrefab, transform.position, Quaternion.identity);
-        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)

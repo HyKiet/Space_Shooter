@@ -158,7 +158,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 4
+  m_Radius: 2.2
 --- !u!114 &5637584188954333910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,8 +193,12 @@ MonoBehaviour:
   explosionSound: {fileID: 8300000, guid: 46bcc371f599a62428eb964fb644457c, type: 3}
   healthPickupPrefab: {fileID: 7561195356419693593, guid: a740eabda0881764ab1f3723391731a0, type: 3}
   weaponPickupPrefab: {fileID: 1151976456325796755, guid: d60270f06d15da14ea76dda8e3786508, type: 3}
+  laserPickupPrefab: {fileID: 5310367360899509284, guid: 19a8a3a76f88fe743974302f64b8dbc4, type: 3}
+  missilePickupPrefab: {fileID: 5376206333168341865, guid: 3e75446dd5dba5248b26b87a00da1e59, type: 3}
+  plasmaPickupPrefab: {fileID: 1327421618177442481, guid: e62c66c35a2f34c45a6d974cfb101821, type: 3}
   dropChance: 0.3
   healthDropRatio: 0.65
+  weaponDropRatio: 0.25
 --- !u!114 &5313593296358423280
 MonoBehaviour:
   m_ObjectHideFlags: 0

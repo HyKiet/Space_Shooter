@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -3.5, z: 0}
-  m_LocalScale: {x: 0.25, y: 0.25, z: 1}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -156,8 +156,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 1.3436189, y: 2.0089445}
-  m_Radius: 5.12
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 2.25
 --- !u!114 &7331872937848524306
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -172,12 +172,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 6
   smoothTime: 0.08
-  projectilePrefab: {fileID: 0}
-  shootPoint: {fileID: 0}
   fireRate: 0.2
-  shootSound: {fileID: 0}
-  maxWeaponLevel: 3
   spreadAngle: 15
+  shootSound: {fileID: 0}
+  shootPoint: {fileID: 0}
+  blasterPrefab: {fileID: 5057469261729206668, guid: 62018d0a80ad43d459e783a63229637d, type: 3}
+  laserPrefab: {fileID: 6136929211147681115, guid: 8750e67ca62f296438dc96fed5d3dd6b, type: 3}
+  missilePrefab: {fileID: 8489750661567776745, guid: 6d91d685a12a96946aab7648a3500894, type: 3}
+  plasmaPrefab: {fileID: 8060515863653380307, guid: 8010d677d4a681b40b92cae75a01933a, type: 3}
+  maxWeaponLevel: 3
   boundaryPadding: 0.5
 --- !u!114 &4972678191572496479
 MonoBehaviour:

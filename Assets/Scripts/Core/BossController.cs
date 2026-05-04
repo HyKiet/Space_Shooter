@@ -77,6 +77,8 @@ public class BossController : MonoBehaviour
 
     private float sweepDir = 1f;
     private Vector3 homePosition;
+    // FIX: Phase 3 — luân phiên giữa Circle và Burst thay vì gọi cả 2 cùng lúc
+    private bool p3AlternateAttack = false;
 
     private AudioSource audioSrc;
 
@@ -177,12 +179,15 @@ public class BossController : MonoBehaviour
         }
         else if (currentPhase == 3)
         {
-            // Phase 3: Circle burst (Tỏa tròn)
-            FireCircle(16); // 16 viên tỏa tròn
-            // Kèm thêm bắn quạt liên tục
-            FireBurst(p3BulletCount, 60f);
-            
-            nextFireTime = Time.time + p3FireInterval;
+            // FIX: Luân phiên Circle và Burst — trước đây gọi cả 2 = 23 đạn/0.5s → impossible
+            // Giờ: 12 viên (circle) hoặc 7 viên (burst), cách nhau 0.8s → căng thẳng nhưng fair
+            if (p3AlternateAttack)
+                FireCircle(12);        // Pattern A: toả tròn 12 viên
+            else
+                FireBurst(p3BulletCount, 60f);  // Pattern B: quạt 7 viên
+
+            p3AlternateAttack = !p3AlternateAttack;
+            nextFireTime = Time.time + 0.8f;  // FIX: tăng từ 0.5s lên 0.8s
         }
     }
 
