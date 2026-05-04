@@ -31,13 +31,17 @@ public class MenuDrifter : MonoBehaviour
         {
             float height = mainCam.orthographicSize;
             float width = height * mainCam.aspect;
-            float pad = 3f;
+            float pad = 12f; // Tăng padding cực lớn cho các thiên thạch khổng lồ
 
             if (transform.position.x > width + pad || transform.position.x < -width - pad ||
                 transform.position.y > height + pad || transform.position.y < -height - pad)
             {
                 Destroy(gameObject);
             }
+        }
+        else
+        {
+            mainCam = Camera.main;
         }
     }
 }
@@ -57,6 +61,10 @@ public class MenuDrifterSpawner : MonoBehaviour
     public float maxSpeed = 3f;
     public float minRotation = -50f;
     public float maxRotation = 50f;
+
+    [Header("Scale Settings")]
+    public float minScale = 1.5f;
+    public float maxScale = 3.5f;
 
     private List<GameObject> activeDrifters = new List<GameObject>();
     private Camera mainCam;
@@ -85,8 +93,8 @@ public class MenuDrifterSpawner : MonoBehaviour
     {
         while (true)
         {
-            // Chỉ sinh ra khi đang ở Menu
-            if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameManager.GameState.Menu)
+            // Sinh ra nếu ở Menu hoặc nếu không có GameManager (đang test scene)
+            if (GameManager.Instance == null || GameManager.Instance.CurrentState == GameManager.GameState.Menu)
             {
                 SpawnDrifter();
             }
@@ -108,7 +116,7 @@ public class MenuDrifterSpawner : MonoBehaviour
         Vector3 velocity = Vector3.zero;
 
         int side = Random.Range(0, 4);
-        float pad = 2f;
+        float pad = 10f; // Xuất phát từ xa hơn để không bị giật hình khi xuất hiện (vì object rất to)
 
         // Xác định vị trí xuất phát từ rìa màn hình
         switch (side)
@@ -159,6 +167,17 @@ public class MenuDrifterSpawner : MonoBehaviour
         float speed = Random.Range(minSpeed, maxSpeed);
         float rotSpeed = Random.Range(minRotation, maxRotation);
         drifter.Initialize(velocity * speed, rotSpeed);
+
+        // Ngẫu nhiên kích thước (Làm cho thiên thạch bự giống ảnh)
+        float scale = Random.Range(minScale, maxScale);
+        drifterObj.transform.localScale = Vector3.one * scale;
+
+        // Đảm bảo hiển thị trên nền nhưng dưới UI
+        SpriteRenderer[] srs = drifterObj.GetComponentsInChildren<SpriteRenderer>();
+        foreach (var sr in srs)
+        {
+            sr.sortingOrder = 5; // Cao hơn các ngôi sao (-10)
+        }
     }
 
     private void HandleStateChanged(GameManager.GameState state)
